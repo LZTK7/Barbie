@@ -18,7 +18,6 @@
     </servlet-mapping>
 
     <!-- ==================== 订单模块 ==================== -->
-    <!-- 订单列表 -->
     <servlet>
         <servlet-name>OrderListServlet</servlet-name>
         <servlet-class>com.barbie.servlet.order.OrderListServlet</servlet-class>
@@ -28,7 +27,6 @@
         <url-pattern>/order/list</url-pattern>
     </servlet-mapping>
 
-    <!-- 确认收货 -->
     <servlet>
         <servlet-name>ConfirmReceiptServlet</servlet-name>
         <servlet-class>com.barbie.servlet.order.ConfirmReceiptServlet</servlet-class>
@@ -39,7 +37,6 @@
     </servlet-mapping>
 
     <!-- ==================== 虚拟衣橱模块 ==================== -->
-    <!-- 衣橱列表 -->
     <servlet>
         <servlet-name>WardrobeListServlet</servlet-name>
         <servlet-class>com.barbie.servlet.wardrobe.WardrobeListServlet</servlet-class>
@@ -49,7 +46,6 @@
         <url-pattern>/wardrobe/list</url-pattern>
     </servlet-mapping>
 
-    <!-- 导入衣服 -->
     <servlet>
         <servlet-name>WardrobeImportServlet</servlet-name>
         <servlet-class>com.barbie.servlet.wardrobe.WardrobeImportServlet</servlet-class>
@@ -59,9 +55,37 @@
         <url-pattern>/wardrobe/import</url-pattern>
     </servlet-mapping>
 
+    <servlet>
+        <servlet-name>WardrobeDeleteServlet</servlet-name>
+        <servlet-class>com.barbie.servlet.wardrobe.WardrobeDeleteServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>WardrobeDeleteServlet</servlet-name>
+        <url-pattern>/wardrobe/delete</url-pattern>
+    </servlet-mapping>
+
+    <!-- ==================== 搭配模块 ==================== -->
+    <servlet>
+        <servlet-name>LookListServlet</servlet-name>
+        <servlet-class>com.barbie.servlet.look.LookListServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>LookListServlet</servlet-name>
+        <url-pattern>/look/list</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>LookCreateServlet</servlet-name>
+        <servlet-class>com.barbie.servlet.look.LookCreateServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>LookCreateServlet</servlet-name>
+        <url-pattern>/look/create</url-pattern>
+    </servlet-mapping>
+
     <!-- ==================== 默认首页 ==================== -->
     <welcome-file-list>
-        <welcome-file>index.jsp</welcome-file>
+        <welcome-file>pages/user/login.jsp</welcome-file>
     </welcome-file-list>
 
 </web-app>

@@ -26,6 +26,8 @@
         .wardrobe-item .tag { font-size: 10px; padding: 2px 8px; border-radius: 10px; background: #f0f0f0; color: #666; }
         .tag-order { background: #d4edda; color: #155724; }
         .tag-manual { background: #fff3cd; color: #856404; }
+        .btn-delete { background: #ff6b81; color: white; border: none; padding: 4px 12px; border-radius: 4px; font-size: 12px; cursor: pointer; margin-top: 6px; }
+        .btn-delete:hover { background: #e8556b; }
         .empty { text-align: center; padding: 60px 0; color: #999; }
         .empty span { font-size: 48px; display: block; margin-bottom: 16px; }
         .nav-links { margin-top: 20px; display: flex; gap: 16px; justify-content: center; }
@@ -72,6 +74,7 @@
                     </span>
                     <span class="tag"><%= w.getCategory() %></span>
                 </div>
+                <button class="btn-delete" onclick="deleteWardrobe(<%= w.getId() %>)">🗑️ 删除</button>
             </div>
         </div>
         <%
@@ -87,5 +90,27 @@
         <a href="${pageContext.request.contextPath}/pages/look/lookList.jsp">👗 我的搭配</a>
     </div>
 </div>
+
+<script>
+    function deleteWardrobe(id) {
+        if (confirm('确定要删除这件衣服吗？')) {
+            fetch('${pageContext.request.contextPath}/wardrobe/delete?id=' + id, {
+                method: 'POST'
+            })
+                .then(response => {
+                    if (response.ok) {
+                        alert('删除成功！');
+                        location.reload();
+                    } else {
+                        alert('删除失败，请重试');
+                    }
+                })
+                .catch(error => {
+                    alert('请求失败：' + error);
+                });
+        }
+    }
+</script>
+
 </body>
 </html>
