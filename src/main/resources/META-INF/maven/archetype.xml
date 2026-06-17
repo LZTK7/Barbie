@@ -1,0 +1,9 @@
+<archetype>
+  <id>Barbie</id>
+  <sources>
+    <source>src/main/java/App.java</source>
+  </sources>
+  <testSources>
+    <source>src/com.barbie.test/java/AppTest.java</source>
+  </testSources>
+</archetype>
