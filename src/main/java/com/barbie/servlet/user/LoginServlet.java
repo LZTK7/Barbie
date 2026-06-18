@@ -25,7 +25,12 @@ public class LoginServlet extends HttpServlet {
 
         if (user != null) {
             SessionUtil.setLoginUser(req.getSession(), user);
-            resp.sendRedirect(req.getContextPath() + "/index");
+            // 根据角色跳转
+            if ("admin".equals(user.getRole())) {
+                resp.sendRedirect(req.getContextPath() + "/admin/index");
+            } else {
+                resp.sendRedirect(req.getContextPath() + "/index");
+            }
         } else {
             req.setAttribute("error", "用户名或密码错误");
             req.getRequestDispatcher("/pages/user/login.jsp").forward(req, resp);

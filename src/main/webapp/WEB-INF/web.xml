@@ -27,6 +27,15 @@
         <url-pattern>/login</url-pattern>
     </servlet-mapping>
 
+    <servlet>
+        <servlet-name>LogoutServlet</servlet-name>
+        <servlet-class>com.barbie.servlet.user.LogoutServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>LogoutServlet</servlet-name>
+        <url-pattern>/logout</url-pattern>
+    </servlet-mapping>
+
     <!-- ==================== 订单模块 ==================== -->
     <servlet>
         <servlet-name>OrderListServlet</servlet-name>
@@ -165,9 +174,64 @@
         <url-pattern>/look/getPendingProducts</url-pattern>
     </servlet-mapping>
 
+    <!-- ==================== 后台管理模块 ==================== -->
+    <servlet>
+        <servlet-name>AdminIndexServlet</servlet-name>
+        <servlet-class>com.barbie.servlet.admin.AdminIndexServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AdminIndexServlet</servlet-name>
+        <url-pattern>/admin/index</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>AdminProductListServlet</servlet-name>
+        <servlet-class>com.barbie.servlet.admin.AdminProductListServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AdminProductListServlet</servlet-name>
+        <url-pattern>/admin/product/list</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>AdminProductAddServlet</servlet-name>
+        <servlet-class>com.barbie.servlet.admin.AdminProductAddServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AdminProductAddServlet</servlet-name>
+        <url-pattern>/admin/product/add</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>AdminProductEditServlet</servlet-name>
+        <servlet-class>com.barbie.servlet.admin.AdminProductEditServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AdminProductEditServlet</servlet-name>
+        <url-pattern>/admin/product/edit</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>AdminProductDeleteServlet</servlet-name>
+        <servlet-class>com.barbie.servlet.admin.AdminProductDeleteServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AdminProductDeleteServlet</servlet-name>
+        <url-pattern>/admin/product/delete</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>AdminUserListServlet</servlet-name>
+        <servlet-class>com.barbie.servlet.admin.AdminUserListServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AdminUserListServlet</servlet-name>
+        <url-pattern>/admin/user/list</url-pattern>
+    </servlet-mapping>
+
     <!-- ==================== 默认首页 ==================== -->
     <welcome-file-list>
-        <welcome-file>pages/index.jsp</welcome-file>
+        <welcome-file>pages/user/login.jsp</welcome-file>
     </welcome-file-list>
 
 </web-app>
