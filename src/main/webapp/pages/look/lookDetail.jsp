@@ -1,24 +1,11 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ page import="com.barbie.model.Look, com.barbie.model.Wardrobe, java.util.List, java.util.ArrayList, com.barbie.dao.ProductDao, com.barbie.model.Product" %>
+<%@ page import="com.barbie.model.Look, com.barbie.model.Wardrobe, com.barbie.model.Product" %>
+<%@ page import="java.util.List, java.util.ArrayList" %>
 <%
     Look look = (Look) request.getAttribute("look");
     List<Wardrobe> items = (List<Wardrobe>) request.getAttribute("items");
-
-    // 获取待购商品信息
-    ProductDao productDao = new ProductDao();
-    List<Product> pendingProducts = new ArrayList<>();
-    String pendingIds = look.getPendingIds();
-    double pendingTotal = 0;
-    if (pendingIds != null && !pendingIds.isEmpty()) {
-        String[] ids = pendingIds.split(",");
-        for (String id : ids) {
-            Product p = productDao.findById(Integer.parseInt(id));
-            if (p != null) {
-                pendingProducts.add(p);
-                pendingTotal += p.getPrice();
-            }
-        }
-    }
+    List<Product> pendingProducts = (List<Product>) request.getAttribute("pendingProducts");
+    if (pendingProducts == null) pendingProducts = new ArrayList<>();
 
     // 按区域分类已有衣服
     List<Wardrobe> headItems = new ArrayList<>();
@@ -38,6 +25,12 @@
                 hasDress = true;
             }
         }
+    }
+
+    // 计算待购总价
+    double pendingTotal = 0;
+    for (Product p : pendingProducts) {
+        pendingTotal += p.getPrice();
     }
 %>
 <!DOCTYPE html>
@@ -90,6 +83,7 @@
             color: #666;
             margin: 0 4px;
         }
+        .tag-pending { background: #d4edda; color: #155724; }
         .zone { margin-bottom: 16px; }
         .zone-title {
             font-size: 12px;
@@ -183,8 +177,6 @@
         .btn-disabled { background: #e8e8e8; color: #bbb; cursor: not-allowed; }
         .btn-success { background: #4ecdc4; color: white; }
         .btn-success:hover { background: #3bbdb5; }
-        .btn-warning { background: #f39c12; color: white; }
-        .btn-warning:hover { background: #e67e22; }
         .back-link { text-align: center; margin-top: 12px; }
         .back-link a { color: #999; text-decoration: none; font-size: 13px; }
         .back-link a:hover { color: #666; }
@@ -231,7 +223,7 @@
         <span class="tag">🌸 <%= look.getSeason() %></span>
         <% } %>
         <span class="tag">👔 已有 <%= items.size() %> 件</span>
-        <span class="tag">🛒 待购 <%= pendingProducts.size() %> 件</span>
+        <span class="tag tag-pending">🛒 待购 <%= pendingProducts.size() %> 件</span>
     </div>
 
     <!-- 头部 -->
@@ -328,7 +320,7 @@
                     img = "uploads/" + img;
                 }
             %>
-            <div class="item-card pending">
+            <div class="item-card" style="border-color:#4ecdc4;">
                 <img src="${pageContext.request.contextPath}/<%= img %>" alt="<%= p.getName() %>">
                 <div class="item-name"><%= p.getName() %></div>
                 <div style="font-size:11px;color:#ff6b81;font-weight:bold;">¥<%= p.getPrice() %></div>

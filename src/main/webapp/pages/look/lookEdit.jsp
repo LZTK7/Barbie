@@ -53,7 +53,7 @@
         .search-area button { padding: 8px 16px; background: #ff6b81; color: white; border: none; border-radius: 6px; cursor: pointer; }
         .search-area button:hover { background: #e8556b; }
         .search-results { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; max-height: 200px; overflow-y: auto; }
-        .search-result-item { background: white; border: 1px solid #ddd; border-radius: 6px; padding: 6px; text-align: center; width: 70px; cursor: pointer; }
+        .search-result-item { background: white; border: 1px solid #ddd; border-radius: 6px; padding: 6px; text-align: center; width: 70px; }
         .search-result-item:hover { border-color: #4ecdc4; }
         .search-result-item img { width: 50px; height: 50px; object-fit: cover; border-radius: 4px; }
         .search-result-item .price { font-size: 11px; color: #ff6b81; font-weight: bold; }
@@ -125,10 +125,10 @@
                 <label>搜索待购衣服</label>
                 <div class="search-area">
                     <input type="text" id="searchKeyword" placeholder="搜索商品..." onkeyup="if(event.keyCode==13) searchProducts()">
-                    <button onclick="searchProducts()">🔍 搜索</button>
+                    <button type="button" onclick="searchProducts()">🔍 搜索</button>
                     <div class="search-results" id="searchResults"></div>
                 </div>
-                <div class="hint">💡 搜索平台商品，点击「添加」加入搭配预览</div>
+                <div class="hint">💡 搜索平台商品，点击「添加」自动保存</div>
             </div>
 
             <!-- 待购列表 -->
@@ -181,7 +181,7 @@
         var pendingHidden = document.getElementById('pendingIds');
 
         if (ownedHidden.value) {
-            ownedIds = ownedHidden.value.split(',');
+            ownedIds = ownedHidden.value.split(',').filter(function(id) { return id !== ''; });
             document.querySelectorAll('#ownedGrid .item-card').forEach(function(el) {
                 if (ownedIds.indexOf(el.dataset.id) > -1) {
                     el.classList.add('selected');
@@ -190,15 +190,37 @@
         }
 
         if (pendingHidden.value && pendingHidden.value.trim() !== '') {
-            pendingIds = pendingHidden.value.split(',');
-            // 需要从服务器获取待购商品信息，简化处理
-            pendingHidden.value.split(',').forEach(function(id) {
-                pendingProducts.push({id: id, name: '商品' + id, img: '', price: 0});
-            });
-            renderPending();
+            pendingIds = pendingHidden.value.split(',').filter(function(id) { return id !== ''; });
+            // 从后端获取待购商品详情
+            fetchPendingProducts(pendingIds.join(','));
+        } else {
+            updateCounts();
         }
-        updateCounts();
     });
+
+    function fetchPendingProducts(ids) {
+        fetch('${pageContext.request.contextPath}/look/getPendingProducts?ids=' + ids)
+            .then(function(response) {
+                if (!response.ok) {
+                    throw new Error('请求失败: ' + response.status);
+                }
+                return response.json();
+            })
+            .then(function(data) {
+                pendingProducts = data;
+                renderPending();
+                updateCounts();
+            })
+            .catch(function(error) {
+                console.error('获取待购商品详情失败:', error);
+                // 降级方案
+                pendingIds.forEach(function(id) {
+                    pendingProducts.push({id: id, name: '商品' + id, img: '', price: 0});
+                });
+                renderPending();
+                updateCounts();
+            });
+    }
 
     function toggleOwned(element) {
         var id = element.dataset.id;
@@ -223,9 +245,15 @@
             alert('请输入搜索关键词');
             return;
         }
+
         fetch('${pageContext.request.contextPath}/look/search?keyword=' + encodeURIComponent(keyword))
-            .then(response => response.json())
-            .then(data => {
+            .then(function(response) {
+                if (!response.ok) {
+                    throw new Error('请求失败: ' + response.status);
+                }
+                return response.json();
+            })
+            .then(function(data) {
                 var container = document.getElementById('searchResults');
                 if (data.length === 0) {
                     container.innerHTML = '<div class="empty-text">未找到相关商品</div>';
@@ -247,7 +275,7 @@
                     if (isAdded) {
                         html += '<span class="badge badge-pending" style="font-size:8px;">已加</span>';
                     } else {
-                        html += '<button class="add-btn" onclick="addPending(' + p.id + ', \'' + p.name.replace(/'/g, "\\'") + '\', \'' + img + '\', ' + p.price + ')">添加</button>';
+                        html += '<button type="button" class="add-btn" onclick="addPending(' + p.id + ', \'' + p.name.replace(/'/g, "\\'") + '\', \'' + img + '\', ' + p.price + ')">添加</button>';
                     }
                     html += '</div>';
                 });
@@ -255,7 +283,7 @@
             })
             .catch(function(error) {
                 console.error('搜索失败:', error);
-                document.getElementById('searchResults').innerHTML = '<div class="empty-text">搜索失败，请重试</div>';
+                document.getElementById('searchResults').innerHTML = '<div class="empty-text">搜索失败，请确认已登录</div>';
             });
     }
 
@@ -268,18 +296,72 @@
             alert('最多选择6件衣服（包含待购）');
             return;
         }
+
+        // 先更新前端
         pendingIds.push(String(id));
-        pendingProducts.push({id: id, name: name, img: img, price: price});
+        pendingProducts.push({
+            id: id,
+            name: name,
+            img: img,
+            price: price,
+            images: img,
+            category: ''
+        });
         updateCounts();
         renderPending();
-        searchProducts();
+
+        // 自动保存到数据库
+        var lookId = document.querySelector('input[name="id"]').value;
+        fetch('${pageContext.request.contextPath}/look/addPending', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: 'lookId=' + lookId + '&productId=' + id
+        })
+            .then(function(response) {
+                if (response.ok) {
+                    console.log('✅ 待购商品已保存');
+                } else {
+                    console.error('❌ 保存失败');
+                }
+            })
+            .catch(function(error) {
+                console.error('请求失败:', error);
+            });
+
+        // 刷新搜索结果
+        var keyword = document.getElementById('searchKeyword').value.trim();
+        if (keyword) searchProducts();
     }
 
     function removePending(index) {
+        var id = pendingIds[index];
         pendingIds.splice(index, 1);
         pendingProducts.splice(index, 1);
         updateCounts();
         renderPending();
+
+        // 自动保存到数据库
+        var lookId = document.querySelector('input[name="id"]').value;
+        fetch('${pageContext.request.contextPath}/look/removePending', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: 'lookId=' + lookId + '&productId=' + id
+        })
+            .then(function(response) {
+                if (response.ok) {
+                    console.log('✅ 待购商品已移除');
+                } else {
+                    console.error('❌ 移除失败');
+                }
+            })
+            .catch(function(error) {
+                console.error('请求失败:', error);
+            });
+
         var keyword = document.getElementById('searchKeyword').value.trim();
         if (keyword) searchProducts();
     }
@@ -293,16 +375,20 @@
         var html = '';
         var total = 0;
         pendingProducts.forEach(function(p, index) {
-            total += p.price;
-            var img = p.img ? 'uploads/' + p.img : '';
+            var price = parseFloat(p.price) || 0;
+            total += price;
+            var img = p.img || p.images || '';
+            if (img && !img.startsWith('uploads/') && !img.startsWith('http')) {
+                img = 'uploads/' + img;
+            }
             html += '<div class="item-card pending">';
             if (img) {
-                html += '<img src="${pageContext.request.contextPath}/' + img + '" alt="' + p.name + '">';
+                html += '<img src="${pageContext.request.contextPath}/' + img + '" alt="' + (p.name || '商品') + '" style="width:60px;height:60px;object-fit:cover;border-radius:4px;background:#f0f0f0;">';
             } else {
                 html += '<div style="width:60px;height:60px;background:#f0f0f0;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:24px;">👕</div>';
             }
-            html += '<div class="item-name">' + p.name.substring(0, 8) + '</div>';
-            html += '<div style="font-size:11px;color:#ff6b81;font-weight:bold;">¥' + p.price.toFixed(0) + '</div>';
+            html += '<div class="item-name">' + (p.name || '商品').substring(0, 8) + '</div>';
+            html += '<div style="font-size:11px;color:#ff6b81;font-weight:bold;">¥' + price.toFixed(0) + '</div>';
             html += '<span class="badge badge-pending badge-remove" onclick="removePending(' + index + ')">✕ 移除</span>';
             html += '</div>';
         });

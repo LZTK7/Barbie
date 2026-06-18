@@ -156,6 +156,15 @@
         <url-pattern>/look/buyAll</url-pattern>
     </servlet-mapping>
 
+    <servlet>
+        <servlet-name>LookGetPendingServlet</servlet-name>
+        <servlet-class>com.barbie.servlet.look.LookGetPendingServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>LookGetPendingServlet</servlet-name>
+        <url-pattern>/look/getPendingProducts</url-pattern>
+    </servlet-mapping>
+
     <!-- ==================== 默认首页 ==================== -->
     <welcome-file-list>
         <welcome-file>pages/index.jsp</welcome-file>

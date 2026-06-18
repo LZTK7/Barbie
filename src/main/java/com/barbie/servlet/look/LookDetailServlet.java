@@ -1,8 +1,10 @@
 package com.barbie.servlet.look;
 
 import com.barbie.dao.LookDao;
+import com.barbie.dao.ProductDao;
 import com.barbie.dao.WardrobeDao;
 import com.barbie.model.Look;
+import com.barbie.model.Product;
 import com.barbie.model.User;
 import com.barbie.model.Wardrobe;
 import com.barbie.util.SessionUtil;
@@ -19,6 +21,7 @@ public class LookDetailServlet extends HttpServlet {
 
     private LookDao lookDao = new LookDao();
     private WardrobeDao wardrobeDao = new WardrobeDao();
+    private ProductDao productDao = new ProductDao();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -38,18 +41,35 @@ public class LookDetailServlet extends HttpServlet {
             return;
         }
 
-        // 获取搭配中的所有衣物
-        String[] ids = look.getWardrobeIds().split(",");
+        // 获取搭配中的所有已有衣物
         List<Wardrobe> items = new ArrayList<>();
-        for (String idStr : ids) {
-            Wardrobe w = wardrobeDao.findById(Integer.parseInt(idStr), user.getId());
-            if (w != null) {
-                items.add(w);
+        String wardrobeIds = look.getWardrobeIds();
+        if (wardrobeIds != null && !wardrobeIds.isEmpty()) {
+            String[] ids = wardrobeIds.split(",");
+            for (String idStr : ids) {
+                Wardrobe w = wardrobeDao.findById(Integer.parseInt(idStr.trim()), user.getId());
+                if (w != null) {
+                    items.add(w);
+                }
+            }
+        }
+
+        // 获取待购商品
+        List<Product> pendingProducts = new ArrayList<>();
+        String pendingIds = look.getPendingIds();
+        if (pendingIds != null && !pendingIds.isEmpty()) {
+            String[] ids = pendingIds.split(",");
+            for (String idStr : ids) {
+                Product p = productDao.findById(Integer.parseInt(idStr.trim()));
+                if (p != null) {
+                    pendingProducts.add(p);
+                }
             }
         }
 
         req.setAttribute("look", look);
         req.setAttribute("items", items);
+        req.setAttribute("pendingProducts", pendingProducts);
         req.getRequestDispatcher("/pages/look/lookDetail.jsp").forward(req, resp);
     }
 }

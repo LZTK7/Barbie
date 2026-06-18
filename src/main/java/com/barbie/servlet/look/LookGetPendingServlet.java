@@ -12,9 +12,10 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.List;
 
-public class LookSearchServlet extends HttpServlet {
+public class LookGetPendingServlet extends HttpServlet {
 
     private ProductDao productDao = new ProductDao();
 
@@ -32,13 +33,25 @@ public class LookSearchServlet extends HttpServlet {
             return;
         }
 
-        String keyword = req.getParameter("keyword");
-        if (keyword == null || keyword.trim().isEmpty()) {
+        String idsParam = req.getParameter("ids");
+        if (idsParam == null || idsParam.trim().isEmpty()) {
             out.write("[]");
             return;
         }
 
-        List<Product> products = productDao.search(keyword);
+        String[] idArray = idsParam.split(",");
+        List<Product> products = new ArrayList<>();
+        for (String idStr : idArray) {
+            try {
+                Product p = productDao.findById(Integer.parseInt(idStr.trim()));
+                if (p != null) {
+                    products.add(p);
+                }
+            } catch (NumberFormatException e) {
+                // 忽略无效ID
+            }
+        }
+
         new Gson().toJson(products, out);
     }
 }

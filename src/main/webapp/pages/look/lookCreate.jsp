@@ -45,7 +45,7 @@
         .search-area button { padding: 8px 16px; background: #ff6b81; color: white; border: none; border-radius: 6px; cursor: pointer; }
         .search-area button:hover { background: #e8556b; }
         .search-results { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; max-height: 200px; overflow-y: auto; }
-        .search-result-item { background: white; border: 1px solid #ddd; border-radius: 6px; padding: 6px; text-align: center; width: 70px; cursor: pointer; }
+        .search-result-item { background: white; border: 1px solid #ddd; border-radius: 6px; padding: 6px; text-align: center; width: 70px; }
         .search-result-item:hover { border-color: #4ecdc4; }
         .search-result-item img { width: 50px; height: 50px; object-fit: cover; border-radius: 4px; }
         .search-result-item .price { font-size: 11px; color: #ff6b81; font-weight: bold; }
@@ -57,7 +57,6 @@
         .empty-text { color: #999; padding: 20px; text-align: center; }
         .pending-summary { background: #f0fffe; padding: 8px 12px; border-radius: 6px; margin-top: 8px; font-size: 13px; color: #333; }
         .pending-summary .price-total { color: #ff6b81; font-weight: bold; }
-        .badge-remove { background: #ff6b81; cursor: pointer; }
         .add-btn { font-size: 10px; background: #4ecdc4; color: white; border: none; border-radius: 4px; padding: 2px 6px; cursor: pointer; margin-top: 2px; }
         .add-btn:hover { background: #3bbdb5; }
     </style>
@@ -115,7 +114,7 @@
                 <label>搜索待购衣服</label>
                 <div class="search-area">
                     <input type="text" id="searchKeyword" placeholder="搜索商品..." onkeyup="if(event.keyCode==13) searchProducts()">
-                    <button onclick="searchProducts()">🔍 搜索</button>
+                    <button type="button" onclick="searchProducts()">🔍 搜索</button>
                     <div class="search-results" id="searchResults"></div>
                 </div>
                 <div class="hint">💡 搜索平台商品，点击「添加」加入搭配预览</div>
@@ -188,9 +187,19 @@
             alert('请输入搜索关键词');
             return;
         }
+
+        console.log('搜索关键词:', keyword);
+
         fetch('${pageContext.request.contextPath}/look/search?keyword=' + encodeURIComponent(keyword))
-            .then(response => response.json())
-            .then(data => {
+            .then(function(response) {
+                console.log('响应状态:', response.status);
+                if (!response.ok) {
+                    throw new Error('请求失败: ' + response.status);
+                }
+                return response.json();
+            })
+            .then(function(data) {
+                console.log('搜索结果:', data);
                 var container = document.getElementById('searchResults');
                 if (data.length === 0) {
                     container.innerHTML = '<div class="empty-text">未找到相关商品</div>';
@@ -220,7 +229,7 @@
             })
             .catch(function(error) {
                 console.error('搜索失败:', error);
-                document.getElementById('searchResults').innerHTML = '<div class="empty-text">搜索失败，请重试</div>';
+                document.getElementById('searchResults').innerHTML = '<div class="empty-text">搜索失败，请确认已登录</div>';
             });
     }
 
@@ -237,7 +246,8 @@
         pendingProducts.push({id: id, name: name, img: img, price: price});
         updateCounts();
         renderPending();
-        searchProducts();
+        var keyword = document.getElementById('searchKeyword').value.trim();
+        if (keyword) searchProducts();
     }
 
     function removePending(index) {
