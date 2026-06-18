@@ -27,6 +27,13 @@
         }
     }
 
+    // 如果有连衣裙，过滤掉上装和下装（合并模式）
+    if (hasDress) {
+        bodyItems = bodyItems.stream()
+                .filter(w -> "连衣裙".equals(w.getCategory()) || "外套".equals(w.getCategory()) || "包".equals(w.getCategory()))
+                .collect(java.util.stream.Collectors.toList());
+    }
+
     // 计算待购总价
     double pendingTotal = 0;
     for (Product p : pendingProducts) {
@@ -70,7 +77,7 @@
             font-size: 14px;
             color: #666;
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
             padding-bottom: 12px;
             border-bottom: 1px solid #f0f0f0;
         }
@@ -199,6 +206,12 @@
             text-align: right;
         }
         .pending-section .total span { color: #ff6b81; font-weight: bold; font-size: 18px; }
+        .dress-hint {
+            text-align: center;
+            font-size: 11px;
+            color: #ff6b81;
+            margin-top: 6px;
+        }
         @media (max-width: 480px) {
             .zone-body .item-card { width: 70px; padding: 8px; }
             .zone-body .item-card img { width: 50px; height: 50px; }
@@ -256,18 +269,7 @@
             <% if (bodyItems.isEmpty()) { %>
             <span class="empty-slot">暂无衣服</span>
             <% } else {
-                List<Wardrobe> displayItems = new ArrayList<>();
-                if (hasDress) {
-                    for (Wardrobe w : bodyItems) {
-                        String cat = w.getCategory();
-                        if ("连衣裙".equals(cat) || "包".equals(cat) || "外套".equals(cat)) {
-                            displayItems.add(w);
-                        }
-                    }
-                } else {
-                    displayItems = bodyItems;
-                }
-                for (Wardrobe w : displayItems) {
+                for (Wardrobe w : bodyItems) {
                     String imgPath = w.getImages();
                     if (imgPath != null && !imgPath.isEmpty() && !imgPath.startsWith("uploads/")) {
                         imgPath = "uploads/" + imgPath;
@@ -282,7 +284,7 @@
             <% } } %>
         </div>
         <% if (hasDress) { %>
-        <div style="text-align:center;font-size:11px;color:#ff6b81;margin-top:6px;">👗 连衣裙穿搭（上装、下装已合并）</div>
+        <div class="dress-hint">👗 连衣裙穿搭（上装、下装已合并）</div>
         <% } %>
     </div>
 

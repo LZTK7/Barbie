@@ -39,11 +39,9 @@ public class LookEditServlet extends HttpServlet {
             return;
         }
 
-        // 获取当前搭配选中的衣服ID列表
         String[] ids = look.getWardrobeIds().split(",");
         List<String> selectedIds = Arrays.asList(ids);
 
-        // 获取用户所有衣橱衣服
         List<Wardrobe> wardrobeList = wardrobeDao.findByUserId(user.getId());
 
         req.setAttribute("look", look);
@@ -64,14 +62,16 @@ public class LookEditServlet extends HttpServlet {
 
         int id = Integer.parseInt(req.getParameter("id"));
         String name = req.getParameter("name");
-        String wardrobeIdsStr = req.getParameter("wardrobeIds");
+        String wardrobeIds = req.getParameter("wardrobeIds");
+        String pendingIds = req.getParameter("pendingIds");
         String scene = req.getParameter("scene");
         String season = req.getParameter("season");
 
         System.out.println("========== 修改搭配开始 ==========");
         System.out.println("搭配ID: " + id);
         System.out.println("搭配名称: " + name);
-        System.out.println("wardrobeIds: " + wardrobeIdsStr);
+        System.out.println("wardrobeIds: " + wardrobeIds);
+        System.out.println("pendingIds: " + pendingIds);
         System.out.println("场景: " + scene);
         System.out.println("季节: " + season);
 
@@ -81,15 +81,8 @@ public class LookEditServlet extends HttpServlet {
             return;
         }
 
-        if (wardrobeIdsStr == null || wardrobeIdsStr.trim().isEmpty()) {
+        if (wardrobeIds == null || wardrobeIds.trim().isEmpty()) {
             req.setAttribute("error", "请选择衣服");
-            doGet(req, resp);
-            return;
-        }
-
-        String[] wardrobeIds = wardrobeIdsStr.split(",");
-        if (wardrobeIds.length < 2) {
-            req.setAttribute("error", "请至少选择2件衣服");
             doGet(req, resp);
             return;
         }
@@ -98,7 +91,8 @@ public class LookEditServlet extends HttpServlet {
         look.setId(id);
         look.setUserId(user.getId());
         look.setName(name);
-        look.setWardrobeIds(wardrobeIdsStr);
+        look.setWardrobeIds(wardrobeIds);
+        look.setPendingIds(pendingIds != null ? pendingIds : "");
         look.setScene(scene);
         look.setSeason(season);
 

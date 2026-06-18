@@ -25,27 +25,39 @@ public class LookAddPendingServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
+        resp.setContentType("application/json;charset=utf-8");
+
         User user = SessionUtil.getLoginUser(req.getSession());
         if (user == null) {
             resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            resp.getWriter().write("请先登录");
+            resp.getWriter().write("{\"success\":false,\"msg\":\"请先登录\"}");
             return;
         }
 
-        int lookId = Integer.parseInt(req.getParameter("lookId"));
-        int productId = Integer.parseInt(req.getParameter("productId"));
+        String lookIdParam = req.getParameter("lookId");
+        String productIdParam = req.getParameter("productId");
+
+        System.out.println("========== LookAddPendingServlet ==========");
+        System.out.println("lookIdParam: " + lookIdParam);
+        System.out.println("productIdParam: " + productIdParam);
+
+        if (lookIdParam == null || productIdParam == null) {
+            resp.getWriter().write("{\"success\":false,\"msg\":\"参数缺失\"}");
+            return;
+        }
+
+        int lookId = Integer.parseInt(lookIdParam);
+        int productId = Integer.parseInt(productIdParam);
 
         Look look = lookDao.findById(lookId, user.getId());
         if (look == null) {
-            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            resp.getWriter().write("搭配不存在");
+            resp.getWriter().write("{\"success\":false,\"msg\":\"搭配不存在\"}");
             return;
         }
 
         Product product = productDao.findById(productId);
         if (product == null) {
-            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            resp.getWriter().write("商品不存在");
+            resp.getWriter().write("{\"success\":false,\"msg\":\"商品不存在\"}");
             return;
         }
 
@@ -56,7 +68,7 @@ public class LookAddPendingServlet extends HttpServlet {
             String[] ids = pendingIds.split(",");
             for (String id : ids) {
                 if (id.equals(String.valueOf(productId))) {
-                    resp.getWriter().write("已添加");
+                    resp.getWriter().write("{\"success\":false,\"msg\":\"已添加\"}");
                     return;
                 }
             }
@@ -66,11 +78,13 @@ public class LookAddPendingServlet extends HttpServlet {
         look.setPendingIds(pendingIds);
         boolean success = lookDao.update(look);
 
+        System.out.println("更新后的pendingIds: " + pendingIds);
+        System.out.println("保存结果: " + success);
+
         Map<String, Object> result = new HashMap<>();
         result.put("success", success);
         result.put("pendingIds", pendingIds);
 
-        resp.setContentType("application/json;charset=utf-8");
         new Gson().toJson(result, resp.getWriter());
     }
 }
