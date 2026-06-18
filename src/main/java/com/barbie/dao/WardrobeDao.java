@@ -4,7 +4,9 @@ import com.barbie.model.Wardrobe;
 import com.barbie.util.DBUtil;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class WardrobeDao {
 
@@ -178,5 +180,31 @@ public class WardrobeDao {
         } finally {
             DBUtil.close(conn, ps);
         }
+    }
+
+    /**
+     * 统计用户衣橱各品类的数量
+     */
+    public Map<String, Integer> countByCategory(int userId) {
+        Map<String, Integer> map = new HashMap<>();
+        String sql = "SELECT category, COUNT(*) as count FROM wardrobe WHERE user_id = ? AND deleted_at IS NULL GROUP BY category";
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            conn = DBUtil.getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setInt(1, userId);
+            rs = ps.executeQuery();
+            while (rs.next()) {
+                map.put(rs.getString("category"), rs.getInt("count"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            DBUtil.close(conn, ps, rs);
+        }
+        return map;
     }
 }

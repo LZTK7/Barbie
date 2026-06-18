@@ -3,7 +3,7 @@ package com.barbie.util;
 import java.sql.*;
 
 public class DBUtil {
-    private static final String URL = "jdbc:mysql://localhost:3306/barbie?useSSL=false&characterEncoding=utf8&serverTimezone=Asia/Shanghai";
+    private static final String URL = "jdbc:mysql://localhost:3306/barbie?useSSL=false&characterEncoding=utf8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true";
     private static final String USER = "root";
     private static final String PASSWORD = "123456";
 

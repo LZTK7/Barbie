@@ -21,6 +21,7 @@
         .look-card .meta { font-size: 13px; color: #999; margin-top: 4px; }
         .look-card .tags { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
         .look-card .tag { font-size: 12px; padding: 2px 12px; border-radius: 12px; background: #f0f0f0; color: #666; }
+        .look-card .tag-pending { background: #d4edda; color: #155724; }
         .look-card .actions { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
         .look-card .actions a { font-size: 13px; color: #ff6b81; text-decoration: none; padding: 4px 12px; border: 1px solid #ff6b81; border-radius: 4px; }
         .look-card .actions a:hover { background: #ff6b81; color: white; }
@@ -50,6 +51,8 @@
     <%
     } else {
         for (Look look : lookList) {
+            int ownedCount = look.getWardrobeIds() != null && !look.getWardrobeIds().isEmpty() ? look.getWardrobeIds().split(",").length : 0;
+            int pendingCount = look.getPendingIds() != null && !look.getPendingIds().isEmpty() ? look.getPendingIds().split(",").length : 0;
     %>
     <div class="look-card">
         <div class="name"><%= look.getName() %></div>
@@ -61,10 +64,13 @@
             <% if (look.getSeason() != null && !look.getSeason().isEmpty()) { %>
             <span class="tag">🌸 <%= look.getSeason() %></span>
             <% } %>
-            <span class="tag">👔 <%= look.getWardrobeIds().split(",").length %> 件衣服</span>
+            <span class="tag">👔 已有 <%= ownedCount %> 件</span>
+            <% if (pendingCount > 0) { %>
+            <span class="tag tag-pending">🛒 待购 <%= pendingCount %> 件</span>
+            <% } %>
         </div>
         <div class="actions">
-            <a href="${pageContext.request.contextPath}/look/detail?id=<%= look.getId() %>">查看详情</a>
+            <a href="${pageContext.request.contextPath}/look/detail?id=<%= look.getId() %>">🔍 预览搭配</a>
             <button class="btn-delete" onclick="deleteLook(<%= look.getId() %>)">🗑️ 删除</button>
         </div>
     </div>

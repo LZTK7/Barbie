@@ -7,6 +7,16 @@
 
     <display-name>Barbie</display-name>
 
+    <!-- ==================== 首页 ==================== -->
+    <servlet>
+        <servlet-name>IndexServlet</servlet-name>
+        <servlet-class>com.barbie.servlet.IndexServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>IndexServlet</servlet-name>
+        <url-pattern>/index</url-pattern>
+    </servlet-mapping>
+
     <!-- ==================== 用户模块 ==================== -->
     <servlet>
         <servlet-name>LoginServlet</servlet-name>
@@ -83,9 +93,72 @@
         <url-pattern>/look/create</url-pattern>
     </servlet-mapping>
 
+    <servlet>
+        <servlet-name>LookDeleteServlet</servlet-name>
+        <servlet-class>com.barbie.servlet.look.LookDeleteServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>LookDeleteServlet</servlet-name>
+        <url-pattern>/look/delete</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>LookDetailServlet</servlet-name>
+        <servlet-class>com.barbie.servlet.look.LookDetailServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>LookDetailServlet</servlet-name>
+        <url-pattern>/look/detail</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>LookEditServlet</servlet-name>
+        <servlet-class>com.barbie.servlet.look.LookEditServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>LookEditServlet</servlet-name>
+        <url-pattern>/look/edit</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>LookSearchServlet</servlet-name>
+        <servlet-class>com.barbie.servlet.look.LookSearchServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>LookSearchServlet</servlet-name>
+        <url-pattern>/look/search</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>LookAddPendingServlet</servlet-name>
+        <servlet-class>com.barbie.servlet.look.LookAddPendingServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>LookAddPendingServlet</servlet-name>
+        <url-pattern>/look/addPending</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>LookRemovePendingServlet</servlet-name>
+        <servlet-class>com.barbie.servlet.look.LookRemovePendingServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>LookRemovePendingServlet</servlet-name>
+        <url-pattern>/look/removePending</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>LookBuyAllServlet</servlet-name>
+        <servlet-class>com.barbie.servlet.look.LookBuyAllServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>LookBuyAllServlet</servlet-name>
+        <url-pattern>/look/buyAll</url-pattern>
+    </servlet-mapping>
+
     <!-- ==================== 默认首页 ==================== -->
     <welcome-file-list>
-        <welcome-file>pages/user/login.jsp</welcome-file>
+        <welcome-file>pages/index.jsp</welcome-file>
     </welcome-file-list>
 
 </web-app>

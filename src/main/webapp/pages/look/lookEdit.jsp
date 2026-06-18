@@ -1,22 +1,29 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ page import="java.util.List, com.barbie.model.Wardrobe" %>
+<%@ page import="java.util.List, com.barbie.model.Wardrobe, com.barbie.model.Look" %>
 <%@ page import="com.barbie.dao.WardrobeDao" %>
 <%@ page import="com.barbie.model.User" %>
 <%@ page import="com.barbie.util.SessionUtil" %>
+<%@ page import="java.util.Arrays" %>
 <%
     User user = SessionUtil.getLoginUser(request.getSession());
     if (user == null) {
         response.sendRedirect(request.getContextPath() + "/pages/user/login.jsp");
         return;
     }
+    Look look = (Look) request.getAttribute("look");
+    List<Wardrobe> wardrobeList = (List<Wardrobe>) request.getAttribute("wardrobeList");
+    List<String> selectedIds = (List<String>) request.getAttribute("selectedIds");
+
     WardrobeDao wardrobeDao = new WardrobeDao();
-    List<Wardrobe> wardrobeList = wardrobeDao.findByUserId(user.getId());
+    if (wardrobeList == null) {
+        wardrobeList = wardrobeDao.findByUserId(user.getId());
+    }
 %>
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>创建搭配 - Barbie</title>
+    <title>修改搭配 - Barbie</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: "Microsoft YaHei", sans-serif; background: #f5f5f5; padding: 20px; }
@@ -40,6 +47,7 @@
         .item-card .badge { font-size: 9px; padding: 1px 6px; border-radius: 8px; color: white; display: inline-block; margin-top: 2px; }
         .badge-owned { background: #6c757d; }
         .badge-pending { background: #4ecdc4; }
+        .badge-remove { background: #ff6b81; cursor: pointer; }
         .search-area { background: #f5f5f5; padding: 12px; border-radius: 8px; margin-top: 8px; }
         .search-area input { width: 65%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
         .search-area button { padding: 8px 16px; background: #ff6b81; color: white; border: none; border-radius: 6px; cursor: pointer; }
@@ -57,7 +65,6 @@
         .empty-text { color: #999; padding: 20px; text-align: center; }
         .pending-summary { background: #f0fffe; padding: 8px 12px; border-radius: 6px; margin-top: 8px; font-size: 13px; color: #333; }
         .pending-summary .price-total { color: #ff6b81; font-weight: bold; }
-        .badge-remove { background: #ff6b81; cursor: pointer; }
         .add-btn { font-size: 10px; background: #4ecdc4; color: white; border: none; border-radius: 4px; padding: 2px 6px; cursor: pointer; margin-top: 2px; }
         .add-btn:hover { background: #3bbdb5; }
     </style>
@@ -65,7 +72,7 @@
 <body>
 <div class="container">
     <div class="header">
-        <h2>✨ 创建搭配</h2>
+        <h2>✏️ 修改搭配</h2>
         <a href="${pageContext.request.contextPath}/look/list" class="back-btn">← 返回</a>
     </div>
 
@@ -74,20 +81,22 @@
         <div class="error"><%= request.getAttribute("error") %></div>
         <% } %>
 
-        <form action="${pageContext.request.contextPath}/look/create" method="post" id="lookForm">
+        <form action="${pageContext.request.contextPath}/look/edit" method="post" id="editForm">
+            <input type="hidden" name="id" value="<%= look.getId() %>">
+
             <div class="form-group">
                 <label>搭配名称 <span class="required">*</span></label>
-                <input type="text" name="name" placeholder="如：周末约会装" required>
+                <input type="text" name="name" value="<%= look.getName() %>" required>
             </div>
 
-            <!-- 已有衣服（从衣橱选） -->
+            <!-- 已有衣服 -->
             <div class="form-group">
                 <label>已有衣服 <span class="selected-count" id="ownedCount">已选 0 件</span></label>
                 <div class="item-grid" id="ownedGrid">
                     <%
                         if (wardrobeList == null || wardrobeList.isEmpty()) {
                     %>
-                    <div class="empty-text">衣橱为空，请先去导入衣服</div>
+                    <div class="empty-text">衣橱为空</div>
                     <%
                     } else {
                         for (Wardrobe w : wardrobeList) {
@@ -95,8 +104,9 @@
                             if (imgPath != null && !imgPath.isEmpty() && !imgPath.startsWith("uploads/")) {
                                 imgPath = "uploads/" + imgPath;
                             }
+                            boolean isSelected = selectedIds != null && selectedIds.contains(String.valueOf(w.getId()));
                     %>
-                    <div class="item-card" data-id="<%= w.getId() %>" data-type="owned" onclick="toggleOwned(this)">
+                    <div class="item-card <%= isSelected ? "selected" : "" %>" data-id="<%= w.getId() %>" onclick="toggleOwned(this)">
                         <img src="${pageContext.request.contextPath}/<%= imgPath %>" alt="<%= w.getName() %>">
                         <div class="item-name"><%= w.getName() %></div>
                         <div class="item-category"><%= w.getCategory() %></div>
@@ -110,7 +120,7 @@
                 <div class="hint">💡 点击选择已有衣服，再次点击取消选择</div>
             </div>
 
-            <!-- 搜索待购衣服 -->
+            <!-- 搜索待购 -->
             <div class="form-group">
                 <label>搜索待购衣服</label>
                 <div class="search-area">
@@ -121,7 +131,7 @@
                 <div class="hint">💡 搜索平台商品，点击「添加」加入搭配预览</div>
             </div>
 
-            <!-- 待购衣服列表 -->
+            <!-- 待购列表 -->
             <div class="form-group">
                 <label>待购衣服 <span class="selected-count" id="pendingCount">已添加 0 件</span></label>
                 <div class="item-grid" id="pendingGrid"></div>
@@ -132,11 +142,11 @@
                 <label>场景</label>
                 <select name="scene">
                     <option value="">请选择（选填）</option>
-                    <option value="通勤">通勤</option>
-                    <option value="街头">街头</option>
-                    <option value="约会">约会</option>
-                    <option value="运动">运动</option>
-                    <option value="度假">度假</option>
+                    <option value="通勤" <%= "通勤".equals(look.getScene()) ? "selected" : "" %>>通勤</option>
+                    <option value="街头" <%= "街头".equals(look.getScene()) ? "selected" : "" %>>街头</option>
+                    <option value="约会" <%= "约会".equals(look.getScene()) ? "selected" : "" %>>约会</option>
+                    <option value="运动" <%= "运动".equals(look.getScene()) ? "selected" : "" %>>运动</option>
+                    <option value="度假" <%= "度假".equals(look.getScene()) ? "selected" : "" %>>度假</option>
                 </select>
             </div>
 
@@ -144,18 +154,18 @@
                 <label>季节</label>
                 <select name="season">
                     <option value="">请选择（选填）</option>
-                    <option value="春">春</option>
-                    <option value="夏">夏</option>
-                    <option value="秋">秋</option>
-                    <option value="冬">冬</option>
-                    <option value="四季">四季</option>
+                    <option value="春" <%= "春".equals(look.getSeason()) ? "selected" : "" %>>春</option>
+                    <option value="夏" <%= "夏".equals(look.getSeason()) ? "selected" : "" %>>夏</option>
+                    <option value="秋" <%= "秋".equals(look.getSeason()) ? "selected" : "" %>>秋</option>
+                    <option value="冬" <%= "冬".equals(look.getSeason()) ? "selected" : "" %>>冬</option>
+                    <option value="四季" <%= "四季".equals(look.getSeason()) ? "selected" : "" %>>四季</option>
                 </select>
             </div>
 
-            <input type="hidden" name="wardrobeIds" id="wardrobeIds" value="">
-            <input type="hidden" name="pendingIds" id="pendingIds" value="">
+            <input type="hidden" name="wardrobeIds" id="wardrobeIds" value="<%= look.getWardrobeIds() %>">
+            <input type="hidden" name="pendingIds" id="pendingIds" value="<%= look.getPendingIds() %>">
 
-            <button type="submit" class="btn-submit">💾 保存搭配</button>
+            <button type="submit" class="btn-submit">💾 保存修改</button>
         </form>
     </div>
 </div>
@@ -164,6 +174,31 @@
     var ownedIds = [];
     var pendingIds = [];
     var pendingProducts = [];
+
+    // 初始化
+    document.addEventListener('DOMContentLoaded', function() {
+        var ownedHidden = document.getElementById('wardrobeIds');
+        var pendingHidden = document.getElementById('pendingIds');
+
+        if (ownedHidden.value) {
+            ownedIds = ownedHidden.value.split(',');
+            document.querySelectorAll('#ownedGrid .item-card').forEach(function(el) {
+                if (ownedIds.indexOf(el.dataset.id) > -1) {
+                    el.classList.add('selected');
+                }
+            });
+        }
+
+        if (pendingHidden.value && pendingHidden.value.trim() !== '') {
+            pendingIds = pendingHidden.value.split(',');
+            // 需要从服务器获取待购商品信息，简化处理
+            pendingHidden.value.split(',').forEach(function(id) {
+                pendingProducts.push({id: id, name: '商品' + id, img: '', price: 0});
+            });
+            renderPending();
+        }
+        updateCounts();
+    });
 
     function toggleOwned(element) {
         var id = element.dataset.id;
@@ -282,7 +317,7 @@
         document.getElementById('pendingIds').value = pendingIds.join(',');
     }
 
-    document.getElementById('lookForm').addEventListener('submit', function(e) {
+    document.getElementById('editForm').addEventListener('submit', function(e) {
         if (ownedIds.length + pendingIds.length < 2) {
             alert('请至少选择2件衣服（已有+待购合计）');
             e.preventDefault();
@@ -295,12 +330,8 @@
         }
         document.getElementById('wardrobeIds').value = ownedIds.join(',');
         document.getElementById('pendingIds').value = pendingIds.join(',');
-        console.log('提交: ownedIds=' + ownedIds.join(',') + ', pendingIds=' + pendingIds.join(','));
         return true;
     });
-
-    updateCounts();
-    renderPending();
 </script>
 </body>
 </html>

@@ -20,11 +20,13 @@ public class LookListServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
+        // ====== 检查登录 ======
         User user = SessionUtil.getLoginUser(req.getSession());
         if (user == null) {
             resp.sendRedirect(req.getContextPath() + "/pages/user/login.jsp");
             return;
         }
+        // ====== 检查登录结束 ======
 
         List<Look> lookList = lookDao.findByUserId(user.getId());
         req.setAttribute("lookList", lookList);

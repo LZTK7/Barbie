@@ -9,7 +9,7 @@ import java.util.List;
 public class LookDao {
 
     public boolean create(Look look) {
-        String sql = "INSERT INTO looks (user_id, name, wardrobe_ids, scene, season) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO looks (user_id, name, wardrobe_ids, pending_ids, scene, season) VALUES (?, ?, ?, ?, ?, ?)";
         Connection conn = null;
         PreparedStatement ps = null;
 
@@ -19,8 +19,9 @@ public class LookDao {
             ps.setInt(1, look.getUserId());
             ps.setString(2, look.getName());
             ps.setString(3, look.getWardrobeIds());
-            ps.setString(4, look.getScene());
-            ps.setString(5, look.getSeason());
+            ps.setString(4, look.getPendingIds());
+            ps.setString(5, look.getScene());
+            ps.setString(6, look.getSeason());
             int affected = ps.executeUpdate();
             if (affected > 0) {
                 ResultSet rs = ps.getGeneratedKeys();
@@ -29,12 +30,13 @@ public class LookDao {
                 }
                 return true;
             }
+            return false;
         } catch (SQLException e) {
             e.printStackTrace();
+            return false;
         } finally {
             DBUtil.close(conn, ps);
         }
-        return false;
     }
 
     public List<Look> findByUserId(int userId) {
@@ -55,6 +57,7 @@ public class LookDao {
                 look.setUserId(rs.getInt("user_id"));
                 look.setName(rs.getString("name"));
                 look.setWardrobeIds(rs.getString("wardrobe_ids"));
+                look.setPendingIds(rs.getString("pending_ids"));
                 look.setScene(rs.getString("scene"));
                 look.setSeason(rs.getString("season"));
                 look.setWearDate(rs.getDate("wear_date"));
@@ -89,6 +92,7 @@ public class LookDao {
                 look.setUserId(rs.getInt("user_id"));
                 look.setName(rs.getString("name"));
                 look.setWardrobeIds(rs.getString("wardrobe_ids"));
+                look.setPendingIds(rs.getString("pending_ids"));
                 look.setScene(rs.getString("scene"));
                 look.setSeason(rs.getString("season"));
                 look.setWearDate(rs.getDate("wear_date"));
@@ -115,6 +119,30 @@ public class LookDao {
             ps = conn.prepareStatement(sql);
             ps.setInt(1, id);
             ps.setInt(2, userId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            DBUtil.close(conn, ps);
+        }
+    }
+
+    public boolean update(Look look) {
+        String sql = "UPDATE looks SET name = ?, wardrobe_ids = ?, pending_ids = ?, scene = ?, season = ? WHERE id = ? AND user_id = ?";
+        Connection conn = null;
+        PreparedStatement ps = null;
+
+        try {
+            conn = DBUtil.getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setString(1, look.getName());
+            ps.setString(2, look.getWardrobeIds());
+            ps.setString(3, look.getPendingIds());
+            ps.setString(4, look.getScene());
+            ps.setString(5, look.getSeason());
+            ps.setInt(6, look.getId());
+            ps.setInt(7, look.getUserId());
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();

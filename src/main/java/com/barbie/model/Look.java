@@ -8,6 +8,7 @@ public class Look {
     private int userId;
     private String name;
     private String wardrobeIds;
+    private String pendingIds;
     private String scene;
     private String season;
     private Date wearDate;
@@ -46,6 +47,14 @@ public class Look {
 
     public void setWardrobeIds(String wardrobeIds) {
         this.wardrobeIds = wardrobeIds;
+    }
+
+    public String getPendingIds() {
+        return pendingIds;
+    }
+
+    public void setPendingIds(String pendingIds) {
+        this.pendingIds = pendingIds;
     }
 
     public String getScene() {
