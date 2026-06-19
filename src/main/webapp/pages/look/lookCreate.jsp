@@ -479,23 +479,21 @@
         return null;
     }
 
-    // ===== 渲染人台预览 =====
+    // ===== 渲染人台预览（全部显示，不过滤） =====
     function renderMannequin() {
         var headItems = [], bodyItems = [], footItems = [];
-        var hasDress = false;
 
+        // 已有衣服分类
         ownedIds.forEach(function(id) {
             var item = getWardrobeItem(id);
             if (!item) return;
             var cat = item.category;
             if (cat === '帽子' || cat === '头饰' || cat === '配饰') headItems.push(item);
             else if (cat === '袜子' || cat === '鞋') footItems.push(item);
-            else {
-                bodyItems.push(item);
-                if (cat === '连衣裙') hasDress = true;
-            }
+            else bodyItems.push(item);
         });
 
+        // 待购衣服分类
         pendingProducts.forEach(function(p) {
             var cat = p.category || '上装';
             if (cat === '帽子' || cat === '头饰' || cat === '配饰') headItems.push(p);
@@ -503,14 +501,7 @@
             else bodyItems.push(p);
         });
 
-        // 如果有连衣裙，只显示连衣裙、外套、包
-        if (hasDress) {
-            bodyItems = bodyItems.filter(function(item) {
-                var cat = item.category;
-                return cat === '连衣裙' || cat === '外套' || cat === '包';
-            });
-        }
-
+        // ✅ 不做任何过滤，全部显示（支持连衣裙+裤子叠穿）
         renderZone('zoneHead', headItems);
         renderZone('zoneBody', bodyItems);
         renderZone('zoneFoot', footItems);
@@ -621,13 +612,6 @@
         var scene = document.getElementById('sceneSelect').value;
         var season = document.getElementById('seasonSelect').value;
 
-        console.log('========== 保存搭配 ==========');
-        console.log('搭配名称: ' + name);
-        console.log('wardrobeIds: ' + ownedIds.join(','));
-        console.log('pendingIds: ' + pendingIds.join(','));
-        console.log('场景: ' + scene);
-        console.log('季节: ' + season);
-
         if (ownedIds.length + pendingIds.length < 2) {
             alert('请至少选择2件衣服（已有+待购合计）');
             return;
@@ -640,7 +624,6 @@
         var form = document.createElement('form');
         form.method = 'POST';
         form.action = '${pageContext.request.contextPath}/look/create';
-        // 关键：确保 pendingIds 被包含在表单中
         form.innerHTML =
             '<input type="hidden" name="name" value="' + name + '">' +
             '<input type="hidden" name="wardrobeIds" value="' + ownedIds.join(',') + '">' +

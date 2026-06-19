@@ -523,9 +523,9 @@
         return null;
     }
 
+    // ===== 渲染人台预览（全部显示，不过滤） =====
     function renderMannequin() {
         var headItems = [], bodyItems = [], footItems = [];
-        var hasDress = false;
 
         ownedIds.forEach(function(id) {
             var item = getWardrobeItem(id);
@@ -533,10 +533,7 @@
             var cat = item.category;
             if (cat === '帽子' || cat === '头饰' || cat === '配饰') headItems.push(item);
             else if (cat === '袜子' || cat === '鞋') footItems.push(item);
-            else {
-                bodyItems.push(item);
-                if (cat === '连衣裙') hasDress = true;
-            }
+            else bodyItems.push(item);
         });
 
         pendingProducts.forEach(function(p) {
@@ -546,14 +543,7 @@
             else bodyItems.push(p);
         });
 
-        // 如果有连衣裙，只显示连衣裙、外套、包
-        if (hasDress) {
-            bodyItems = bodyItems.filter(function(item) {
-                var cat = item.category;
-                return cat === '连衣裙' || cat === '外套' || cat === '包';
-            });
-        }
-
+        // ✅ 不做任何过滤，全部显示（支持连衣裙+裤子叠穿）
         renderZone('zoneHead', headItems);
         renderZone('zoneBody', bodyItems);
         renderZone('zoneFoot', footItems);
@@ -649,47 +639,24 @@
     function addPending(id, name, img, price, category) {
         if (pendingIds.indexOf(String(id)) > -1) { alert('已添加'); return; }
         if (ownedIds.length + pendingIds.length >= 6) { alert('最多选择6件衣服'); return; }
-
-        // 更新前端
         pendingIds.push(String(id));
         pendingProducts.push({id: id, name: name, img: img, price: price, category: category || '上装', source: 'pending'});
         renderMannequin();
         updateCounts();
         renderSearchResults();
 
-        console.log('========== 添加待购 ==========');
-        console.log('lookId: ' + lookId);
-        console.log('productId: ' + id);
-
         // 保存到数据库
         fetch('${pageContext.request.contextPath}/look/addPending', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: 'lookId=' + lookId + '&productId=' + id
-        })
-            .then(function(response) {
-                if (response.ok) {
-                    console.log('✅ 待购商品已保存到数据库');
-                } else {
-                    console.error('❌ 保存失败');
-                }
-            })
-            .catch(function(error) {
-                console.error('请求失败:', error);
-            });
+        }).catch(function() {});
     }
 
     function saveLook() {
         var name = document.getElementById('lookNameInput').textContent.trim() || '我的搭配';
         var scene = document.getElementById('sceneSelect').value;
         var season = document.getElementById('seasonSelect').value;
-
-        console.log('========== 保存修改 ==========');
-        console.log('搭配名称: ' + name);
-        console.log('wardrobeIds: ' + ownedIds.join(','));
-        console.log('pendingIds: ' + pendingIds.join(','));
-        console.log('场景: ' + scene);
-        console.log('季节: ' + season);
 
         if (ownedIds.length + pendingIds.length < 2) {
             alert('请至少选择2件衣服（已有+待购合计）');
@@ -699,10 +666,6 @@
             alert('请至少选择1件已有衣服');
             return;
         }
-
-        // 更新隐藏域
-        document.getElementById('wardrobeIds').value = ownedIds.join(',');
-        document.getElementById('pendingIds').value = pendingIds.join(',');
 
         var form = document.createElement('form');
         form.method = 'POST';

@@ -11,7 +11,6 @@
     List<Wardrobe> headItems = new ArrayList<>();
     List<Wardrobe> bodyItems = new ArrayList<>();
     List<Wardrobe> footItems = new ArrayList<>();
-    boolean hasDress = false;
 
     for (Wardrobe w : items) {
         String category = w.getCategory();
@@ -21,17 +20,7 @@
             footItems.add(w);
         } else {
             bodyItems.add(w);
-            if ("连衣裙".equals(category)) {
-                hasDress = true;
-            }
         }
-    }
-
-    // 如果有连衣裙，过滤掉上装和下装（合并模式）
-    if (hasDress) {
-        bodyItems = bodyItems.stream()
-                .filter(w -> "连衣裙".equals(w.getCategory()) || "外套".equals(w.getCategory()) || "包".equals(w.getCategory()))
-                .collect(java.util.stream.Collectors.toList());
     }
 
     // 计算待购总价
@@ -206,12 +195,6 @@
             text-align: right;
         }
         .pending-section .total span { color: #ff6b81; font-weight: bold; font-size: 18px; }
-        .dress-hint {
-            text-align: center;
-            font-size: 11px;
-            color: #ff6b81;
-            margin-top: 6px;
-        }
         @media (max-width: 480px) {
             .zone-body .item-card { width: 70px; padding: 8px; }
             .zone-body .item-card img { width: 50px; height: 50px; }
@@ -283,9 +266,6 @@
             </div>
             <% } } %>
         </div>
-        <% if (hasDress) { %>
-        <div class="dress-hint">👗 连衣裙穿搭（上装、下装已合并）</div>
-        <% } %>
     </div>
 
     <!-- 脚部 -->
