@@ -39,6 +39,15 @@ public class LookSearchServlet extends HttpServlet {
         }
 
         List<Product> products = productDao.search(keyword);
+
+        // 修复图片路径
+        for (Product p : products) {
+            String img = p.getImages();
+            if (img != null && !img.isEmpty() && !img.startsWith("uploads/") && !img.startsWith("http")) {
+                p.setImages("uploads/" + img);
+            }
+        }
+
         new Gson().toJson(products, out);
     }
 }

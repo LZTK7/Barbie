@@ -589,7 +589,6 @@
         var total = 0;
         pendingProducts.forEach(function(p) { total += parseFloat(p.price) || 0; });
         document.getElementById('previewTotal').textContent = total.toFixed(0);
-        // 更新隐藏域
         document.getElementById('wardrobeIds').value = ownedIds.join(',');
         document.getElementById('pendingIds').value = pendingIds.join(',');
     }
@@ -617,10 +616,15 @@
         var html = '';
         pendingSearchResults.forEach(function(p) {
             var isAdded = pendingIds.indexOf(String(p.id)) > -1;
-            var img = p.images ? p.images.split(',')[0] : '';
+            var images = p.images ? p.images.split(',') : [];
+            var img = images.length > 0 ? images[0] : '';
+            // 修复图片路径：如果已包含 uploads/ 则不再添加
+            if (img && !img.startsWith('uploads/') && !img.startsWith('http')) {
+                img = 'uploads/' + img;
+            }
             html += '<div class="search-result-item">';
             if (img) {
-                html += '<img src="${pageContext.request.contextPath}/uploads/' + img + '" alt="' + p.name + '">';
+                html += '<img src="${pageContext.request.contextPath}/' + img + '" alt="' + p.name + '">';
             } else {
                 html += '<div style="width:40px;height:40px;background:#f0f0f0;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:20px;">👕</div>';
             }
