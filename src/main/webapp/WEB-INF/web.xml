@@ -17,6 +17,16 @@
         <url-pattern>/index</url-pattern>
     </servlet-mapping>
 
+    <!-- ==================== 搜索 ==================== -->
+    <servlet>
+        <servlet-name>SearchServlet</servlet-name>
+        <servlet-class>com.barbie.servlet.SearchServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>SearchServlet</servlet-name>
+        <url-pattern>/search</url-pattern>
+    </servlet-mapping>
+
     <!-- ==================== 用户模块 ==================== -->
     <servlet>
         <servlet-name>LoginServlet</servlet-name>
@@ -53,6 +63,33 @@
     <servlet-mapping>
         <servlet-name>ConfirmReceiptServlet</servlet-name>
         <url-pattern>/order/confirm</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>OrderDetailServlet</servlet-name>
+        <servlet-class>com.barbie.servlet.order.OrderDetailServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>OrderDetailServlet</servlet-name>
+        <url-pattern>/order/detail</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>OrderCreateServlet</servlet-name>
+        <servlet-class>com.barbie.servlet.order.OrderCreateServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>OrderCreateServlet</servlet-name>
+        <url-pattern>/order/create</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>OrderDeleteServlet</servlet-name>
+        <servlet-class>com.barbie.servlet.order.OrderDeleteServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>OrderDeleteServlet</servlet-name>
+        <url-pattern>/order/delete</url-pattern>
     </servlet-mapping>
 
     <!-- ==================== 虚拟衣橱模块 ==================== -->
@@ -172,6 +209,38 @@
     <servlet-mapping>
         <servlet-name>LookGetPendingServlet</servlet-name>
         <url-pattern>/look/getPendingProducts</url-pattern>
+    </servlet-mapping>
+
+    <!-- ==================== 购物车模块 ==================== -->
+    <servlet>
+        <servlet-name>CartListServlet</servlet-name>
+        <servlet-class>com.barbie.servlet.cart.CartListServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>CartListServlet</servlet-name>
+        <url-pattern>/cart/list</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>AddCartServlet</servlet-name>
+        <servlet-class>com.barbie.servlet.cart.AddCartServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AddCartServlet</servlet-name>
+        <url-pattern>/cart/add</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>CartServlet</servlet-name>
+        <servlet-class>com.barbie.servlet.cart.CartServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>CartServlet</servlet-name>
+        <url-pattern>/cart/update</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>CartServlet</servlet-name>
+        <url-pattern>/cart/clear</url-pattern>
     </servlet-mapping>
 
     <!-- ==================== 后台管理模块 ==================== -->

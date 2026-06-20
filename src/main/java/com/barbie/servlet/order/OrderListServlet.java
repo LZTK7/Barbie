@@ -20,27 +20,29 @@ public class OrderListServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
-        // 1. 获取当前登录用户
         User user = SessionUtil.getLoginUser(req.getSession());
+        if (user == null) {
+            resp.sendRedirect(req.getContextPath() + "/pages/user/login.jsp");
+            return;
+        }
 
-        // 2. 获取状态参数（默认 all）
         String status = req.getParameter("status");
         if (status == null || status.isEmpty()) {
             status = "all";
         }
 
-        // 3. 查询订单
-        List<Order> orders = null;
-        if (user != null) {
-            orders = orderDao.findByUserIdAndStatus(user.getId(), status);
-            System.out.println("当前用户ID: " + user.getId());
-            System.out.println("查询状态: " + status);
-            System.out.println("查到订单数: " + (orders == null ? 0 : orders.size()));
-        } else {
-            System.out.println("用户未登录！");
+        List<Order> orders = orderDao.findByUserIdAndStatus(user.getId(), status);
+
+        // 打印调试信息
+        System.out.println("当前用户ID: " + user.getId());
+        System.out.println("查询状态: " + status);
+        System.out.println("查到订单数: " + (orders == null ? 0 : orders.size()));
+        if (orders != null && !orders.isEmpty()) {
+            for (Order o : orders) {
+                System.out.println("订单号: " + o.getOrderNo() + ", 状态: " + o.getStatus());
+            }
         }
 
-        // 4. 存入 request 并转发到 JSP
         req.setAttribute("orders", orders);
         req.setAttribute("currentStatus", status);
         req.getRequestDispatcher("/pages/order/orderList.jsp").forward(req, resp);

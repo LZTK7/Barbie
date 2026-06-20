@@ -31,7 +31,10 @@
         .empty { text-align: center; padding: 60px 0; color: #999; }
         .empty span { font-size: 48px; display: block; margin-bottom: 16px; }
         .nav-links { margin-top: 20px; display: flex; gap: 16px; justify-content: center; }
-        .nav-links a { color: #ff6b81; text-decoration: none; }
+        .nav-links a { color: #999; text-decoration: none; font-size: 14px; transition: all 0.3s; }
+        .nav-links a:hover { color: #ff6b81; }
+        .nav-links .home-link { color: #ff6b81; font-weight: bold; }
+        .nav-links .home-link:hover { color: #e8556b; }
     </style>
 </head>
 <body>
@@ -86,8 +89,8 @@
     %>
 
     <div class="nav-links">
-        <a href="${pageContext.request.contextPath}/order/list?status=all">📦 我的订单</a>
-        <a href="${pageContext.request.contextPath}/pages/look/lookList.jsp">👗 我的搭配</a>
+        <a href="${pageContext.request.contextPath}/index" class="home-link">🏠 返回首页</a>
+        <a href="${pageContext.request.contextPath}/look/list">👗 我的搭配</a>
     </div>
 </div>
 

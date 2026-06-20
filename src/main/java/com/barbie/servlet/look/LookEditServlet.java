@@ -75,6 +75,15 @@ public class LookEditServlet extends HttpServlet {
         System.out.println("场景: " + scene);
         System.out.println("季节: " + season);
 
+        // ===== 关键：先查询原有的 look，保留 cart_ids 和 shipped_ids =====
+        Look existingLook = lookDao.findById(id, user.getId());
+        if (existingLook == null) {
+            resp.sendRedirect(req.getContextPath() + "/look/list");
+            return;
+        }
+        System.out.println("原有的 cart_ids: " + existingLook.getCartIds());
+        System.out.println("原有的 shipped_ids: " + existingLook.getShippedIds());
+
         if (name == null || name.trim().isEmpty()) {
             req.setAttribute("error", "请输入搭配名称");
             doGet(req, resp);
@@ -92,9 +101,15 @@ public class LookEditServlet extends HttpServlet {
         look.setUserId(user.getId());
         look.setName(name);
         look.setWardrobeIds(wardrobeIds);
-        look.setPendingIds(pendingIds != null ? pendingIds : "");
+        look.setPendingIds(pendingIds);
+        // ===== 关键：保留原有的 cart_ids 和 shipped_ids，不被覆盖 =====
+        look.setCartIds(existingLook.getCartIds());
+        look.setShippedIds(existingLook.getShippedIds());
         look.setScene(scene);
         look.setSeason(season);
+
+        System.out.println("保存的 cart_ids: " + look.getCartIds());
+        System.out.println("保存的 shipped_ids: " + look.getShippedIds());
 
         boolean success = lookDao.update(look);
         System.out.println("修改结果: " + success);

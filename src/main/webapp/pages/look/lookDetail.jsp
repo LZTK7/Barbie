@@ -1,16 +1,18 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="com.barbie.model.Look, com.barbie.model.Wardrobe, com.barbie.model.Product" %>
+<%@ page import="com.barbie.dao.ProductDao" %>
 <%@ page import="java.util.List, java.util.ArrayList" %>
 <%
     Look look = (Look) request.getAttribute("look");
     List<Wardrobe> items = (List<Wardrobe>) request.getAttribute("items");
-    List<Product> pendingProducts = (List<Product>) request.getAttribute("pendingProducts");
-    if (pendingProducts == null) pendingProducts = new ArrayList<>();
+
+    ProductDao productDao = new ProductDao();
 
     // 按区域分类已有衣服
     List<Wardrobe> headItems = new ArrayList<>();
     List<Wardrobe> bodyItems = new ArrayList<>();
     List<Wardrobe> footItems = new ArrayList<>();
+    boolean hasDress = false;
 
     for (Wardrobe w : items) {
         String category = w.getCategory();
@@ -20,10 +22,48 @@
             footItems.add(w);
         } else {
             bodyItems.add(w);
+            if ("连衣裙".equals(category)) {
+                hasDress = true;
+            }
         }
     }
 
-    // 计算待购总价
+    // 有连衣裙时合并
+    if (hasDress) {
+        bodyItems = bodyItems.stream()
+                .filter(w -> "连衣裙".equals(w.getCategory()) || "外套".equals(w.getCategory()) || "包".equals(w.getCategory()))
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    // ===== 获取三种状态的待购商品 =====
+    List<Product> pendingProducts = new ArrayList<>();
+    String pendingIds = look.getPendingIds();
+    if (pendingIds != null && !pendingIds.isEmpty()) {
+        for (String id : pendingIds.split(",")) {
+            Product p = productDao.findById(Integer.parseInt(id.trim()));
+            if (p != null) pendingProducts.add(p);
+        }
+    }
+
+    List<Product> cartProducts = new ArrayList<>();
+    String cartIds = look.getCartIds();
+    if (cartIds != null && !cartIds.isEmpty()) {
+        for (String id : cartIds.split(",")) {
+            Product p = productDao.findById(Integer.parseInt(id.trim()));
+            if (p != null) cartProducts.add(p);
+        }
+    }
+
+    List<Product> shippedProducts = new ArrayList<>();
+    String shippedIds = look.getShippedIds();
+    if (shippedIds != null && !shippedIds.isEmpty()) {
+        for (String id : shippedIds.split(",")) {
+            Product p = productDao.findById(Integer.parseInt(id.trim()));
+            if (p != null) shippedProducts.add(p);
+        }
+    }
+
+    // 计算待购总价（仅待加购）
     double pendingTotal = 0;
     for (Product p : pendingProducts) {
         pendingTotal += p.getPrice();
@@ -79,7 +119,9 @@
             color: #666;
             margin: 0 4px;
         }
-        .tag-pending { background: #d4edda; color: #155724; }
+        .tag-pending { background: #fff3cd; color: #856404; }
+        .tag-cart { background: #cce5ff; color: #004085; }
+        .tag-shipped { background: #d4edda; color: #155724; }
         .zone { margin-bottom: 16px; }
         .zone-title {
             font-size: 12px;
@@ -136,7 +178,9 @@
             margin-top: 2px;
         }
         .badge-owned { background: #6c757d; }
-        .badge-pending { background: #4ecdc4; }
+        .badge-pending { background: #ffc107; color: #333; }
+        .badge-cart { background: #007bff; }
+        .badge-shipped { background: #28a745; }
         .zone-body .item-card { width: 90px; padding: 12px; }
         .zone-body .item-card img { width: 70px; height: 70px; }
         .zone-head .item-card { width: 90px; }
@@ -171,13 +215,15 @@
         .btn-secondary { background: #f0f0f0; color: #666; }
         .btn-secondary:hover { background: #e0e0e0; }
         .btn-disabled { background: #e8e8e8; color: #bbb; cursor: not-allowed; }
-        .btn-success { background: #4ecdc4; color: white; }
-        .btn-success:hover { background: #3bbdb5; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-success:hover { background: #218838; }
+        .btn-warning { background: #ffc107; color: #333; }
+        .btn-warning:hover { background: #e0a800; }
         .back-link { text-align: center; margin-top: 12px; }
         .back-link a { color: #999; text-decoration: none; font-size: 13px; }
         .back-link a:hover { color: #666; }
         .pending-section {
-            background: #f0fffe;
+            background: #f8f9fa;
             border-radius: 10px;
             padding: 12px;
             margin-top: 12px;
@@ -185,8 +231,13 @@
         .pending-section .title {
             font-size: 13px;
             font-weight: bold;
-            color: #4ecdc4;
+            color: #333;
             margin-bottom: 8px;
+        }
+        .pending-section .sub-title {
+            font-size: 12px;
+            color: #666;
+            margin: 6px 0 4px 0;
         }
         .pending-section .total {
             font-size: 14px;
@@ -195,6 +246,23 @@
             text-align: right;
         }
         .pending-section .total span { color: #ff6b81; font-weight: bold; font-size: 18px; }
+        .dress-hint {
+            text-align: center;
+            font-size: 11px;
+            color: #ff6b81;
+            margin-top: 6px;
+        }
+        .status-label {
+            font-size: 9px;
+            padding: 1px 6px;
+            border-radius: 8px;
+            color: white;
+            display: inline-block;
+            margin-top: 2px;
+        }
+        .status-pending { background: #ffc107; color: #333; }
+        .status-cart { background: #007bff; }
+        .status-shipped { background: #28a745; }
         @media (max-width: 480px) {
             .zone-body .item-card { width: 70px; padding: 8px; }
             .zone-body .item-card img { width: 50px; height: 50px; }
@@ -219,7 +287,15 @@
         <span class="tag">🌸 <%= look.getSeason() %></span>
         <% } %>
         <span class="tag">👔 已有 <%= items.size() %> 件</span>
-        <span class="tag tag-pending">🛒 待购 <%= pendingProducts.size() %> 件</span>
+        <% if (!pendingProducts.isEmpty()) { %>
+        <span class="tag tag-pending">🟡 待加购 <%= pendingProducts.size() %> 件</span>
+        <% } %>
+        <% if (!cartProducts.isEmpty()) { %>
+        <span class="tag tag-cart">🟠 待购买 <%= cartProducts.size() %> 件</span>
+        <% } %>
+        <% if (!shippedProducts.isEmpty()) { %>
+        <span class="tag tag-shipped">🔵 待收货 <%= shippedProducts.size() %> 件</span>
+        <% } %>
     </div>
 
     <!-- 头部 -->
@@ -266,6 +342,9 @@
             </div>
             <% } } %>
         </div>
+        <% if (hasDress) { %>
+        <div class="dress-hint">👗 连衣裙穿搭（上装、下装已合并）</div>
+        <% } %>
     </div>
 
     <!-- 脚部 -->
@@ -291,10 +370,14 @@
         </div>
     </div>
 
-    <!-- 待购衣服 -->
-    <% if (!pendingProducts.isEmpty()) { %>
+    <!-- 待购商品区域 -->
+    <% if (!pendingProducts.isEmpty() || !cartProducts.isEmpty() || !shippedProducts.isEmpty()) { %>
     <div class="pending-section">
-        <div class="title">🛒 待购衣服</div>
+        <div class="title">🛒 待购商品</div>
+
+        <!-- 待加购 -->
+        <% if (!pendingProducts.isEmpty()) { %>
+        <div class="sub-title">🟡 待加购</div>
         <div class="zone-items">
             <% for (Product p : pendingProducts) {
                 String img = p.getImages();
@@ -302,15 +385,56 @@
                     img = "uploads/" + img;
                 }
             %>
-            <div class="item-card" style="border-color:#4ecdc4;">
+            <div class="item-card" style="border-color:#ffc107;">
                 <img src="${pageContext.request.contextPath}/<%= img %>" alt="<%= p.getName() %>">
                 <div class="item-name"><%= p.getName() %></div>
                 <div style="font-size:11px;color:#ff6b81;font-weight:bold;">¥<%= p.getPrice() %></div>
-                <span class="badge badge-pending">待购</span>
+                <span class="status-label status-pending">待加购</span>
             </div>
             <% } %>
         </div>
-        <div class="total">待购合计：<span>¥<%= String.format("%.2f", pendingTotal) %></span></div>
+        <div class="total">待加购合计：<span>¥<%= String.format("%.2f", pendingTotal) %></span></div>
+        <% } %>
+
+        <!-- 待购买 -->
+        <% if (!cartProducts.isEmpty()) { %>
+        <div class="sub-title" style="margin-top:8px;">🟠 待购买（已加入购物车）</div>
+        <div class="zone-items">
+            <% for (Product p : cartProducts) {
+                String img = p.getImages();
+                if (img != null && !img.isEmpty() && !img.startsWith("uploads/")) {
+                    img = "uploads/" + img;
+                }
+            %>
+            <div class="item-card" style="border-color:#007bff;">
+                <img src="${pageContext.request.contextPath}/<%= img %>" alt="<%= p.getName() %>">
+                <div class="item-name"><%= p.getName() %></div>
+                <div style="font-size:11px;color:#ff6b81;font-weight:bold;">¥<%= p.getPrice() %></div>
+                <span class="status-label status-cart">待购买</span>
+            </div>
+            <% } %>
+        </div>
+        <% } %>
+
+        <!-- 待收货 -->
+        <% if (!shippedProducts.isEmpty()) { %>
+        <div class="sub-title" style="margin-top:8px;">🔵 待收货（已结算）</div>
+        <div class="zone-items">
+            <% for (Product p : shippedProducts) {
+                String img = p.getImages();
+                if (img != null && !img.isEmpty() && !img.startsWith("uploads/")) {
+                    img = "uploads/" + img;
+                }
+            %>
+            <div class="item-card" style="border-color:#28a745;">
+                <img src="${pageContext.request.contextPath}/<%= img %>" alt="<%= p.getName() %>">
+                <div class="item-name"><%= p.getName() %></div>
+                <div style="font-size:11px;color:#ff6b81;font-weight:bold;">¥<%= p.getPrice() %></div>
+                <span class="status-label status-shipped">待收货</span>
+            </div>
+            <% } %>
+        </div>
+        <% } %>
     </div>
     <% } %>
 
@@ -318,10 +442,10 @@
     <div class="footer">
         <a href="${pageContext.request.contextPath}/look/list" class="btn btn-secondary">← 返回</a>
         <a href="${pageContext.request.contextPath}/look/edit?id=<%= look.getId() %>" class="btn btn-primary">✏️ 编辑</a>
-        <% if (pendingProducts.isEmpty()) { %>
-        <span class="btn btn-disabled">✅ 已拥有全部</span>
+        <% if (!pendingProducts.isEmpty()) { %>
+        <a href="${pageContext.request.contextPath}/look/buyAll?lookId=<%= look.getId() %>" class="btn btn-warning">🛒 一键加购（<%= pendingProducts.size() %>件）</a>
         <% } else { %>
-        <a href="${pageContext.request.contextPath}/look/buyAll?lookId=<%= look.getId() %>" class="btn btn-success">🛒 一键加购（<%= pendingProducts.size() %>件）</a>
+        <span class="btn btn-disabled">✅ 无待加购商品</span>
         <% } %>
     </div>
 

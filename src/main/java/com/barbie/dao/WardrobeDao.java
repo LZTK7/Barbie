@@ -11,16 +11,17 @@ import java.util.Map;
 public class WardrobeDao {
 
     /**
-     * 从订单添加衣物到衣橱
+     * 从订单添加衣物到衣橱，返回插入的衣橱ID
      */
-    public void addFromOrder(int userId, int orderItemId, String name, String image, String category, String color, String season) {
+    public int addFromOrder(int userId, int orderItemId, String name, String image, String category, String color, String season) {
         String sql = "INSERT INTO wardrobe (user_id, source_type, order_item_id, name, images, category, color, season) VALUES (?, 'order', ?, ?, ?, ?, ?, ?)";
         Connection conn = null;
         PreparedStatement ps = null;
+        ResultSet rs = null;
 
         try {
             conn = DBUtil.getConnection();
-            ps = conn.prepareStatement(sql);
+            ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             ps.setInt(1, userId);
             ps.setInt(2, orderItemId);
             ps.setString(3, name);
@@ -28,12 +29,19 @@ public class WardrobeDao {
             ps.setString(5, category);
             ps.setString(6, color);
             ps.setString(7, season);
-            ps.executeUpdate();
+            int affected = ps.executeUpdate();
+            if (affected > 0) {
+                rs = ps.getGeneratedKeys();
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
-            DBUtil.close(conn, ps);
+            DBUtil.close(conn, ps, rs);
         }
+        return -1;
     }
 
     /**

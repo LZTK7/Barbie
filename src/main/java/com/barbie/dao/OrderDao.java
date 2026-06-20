@@ -9,6 +9,72 @@ import java.util.List;
 public class OrderDao {
 
     /**
+     * 创建订单，返回订单ID
+     */
+    public int create(Order order) {
+        String sql = "INSERT INTO orders (user_id, order_no, total_amount, status, address, receiver, phone, remark) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            conn = DBUtil.getConnection();
+            ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            ps.setInt(1, order.getUserId());
+            ps.setString(2, order.getOrderNo());
+            ps.setDouble(3, order.getTotalAmount());
+            ps.setString(4, order.getStatus());
+            ps.setString(5, order.getAddress());
+            ps.setString(6, order.getReceiver());
+            ps.setString(7, order.getPhone());
+            ps.setString(8, order.getRemark());
+            ps.executeUpdate();
+            rs = ps.getGeneratedKeys();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            DBUtil.close(conn, ps, rs);
+        }
+        return 0;
+    }
+
+    /**
+     * 删除订单（先删除订单商品，再删除订单）
+     */
+    public boolean deleteById(int orderId) {
+        Connection conn = null;
+        PreparedStatement ps = null;
+        boolean success = true;
+
+        try {
+            conn = DBUtil.getConnection();
+
+            // 先删除订单商品
+            String deleteItemsSql = "DELETE FROM order_items WHERE order_id = ?";
+            ps = conn.prepareStatement(deleteItemsSql);
+            ps.setInt(1, orderId);
+            ps.executeUpdate();
+            ps.close();
+
+            // 再删除订单
+            String deleteOrderSql = "DELETE FROM orders WHERE id = ?";
+            ps = conn.prepareStatement(deleteOrderSql);
+            ps.setInt(1, orderId);
+            success = ps.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            success = false;
+        } finally {
+            DBUtil.close(conn, ps);
+        }
+        return success;
+    }
+
+    /**
      * 根据用户ID和状态查询订单列表
      */
     public List<Order> findByUserIdAndStatus(int userId, String status) {

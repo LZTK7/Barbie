@@ -26,18 +26,13 @@ public class IndexServlet extends HttpServlet {
 
         User user = SessionUtil.getLoginUser(req.getSession());
 
-        // 默认推荐品类
+        // 衣橱补全推荐（传给右侧）
         String recommendCategory = null;
         List<Product> recommendProducts = new ArrayList<>();
 
         if (user != null) {
-            // 获取衣橱品类统计
             Map<String, Integer> categoryCount = wardrobeDao.countByCategory(user.getId());
-
-            // 所有品类列表
             String[] allCategories = {"上装", "下装", "外套", "鞋", "连衣裙", "包", "配饰"};
-
-            // 找出数量最少的品类（缺什么推荐什么）
             String minCategory = null;
             int minCount = Integer.MAX_VALUE;
 
@@ -49,24 +44,24 @@ public class IndexServlet extends HttpServlet {
                 }
             }
 
-            // 如果所有品类都 > 3件，推荐热销
             if (minCount >= 3) {
                 recommendCategory = "热销新品";
-                recommendProducts = productDao.getHotProducts(8);
+                recommendProducts = productDao.getHotProducts(3);
             } else if (minCategory != null) {
                 recommendCategory = minCategory;
-                recommendProducts = productDao.findByCategory(minCategory, 8);
+                recommendProducts = productDao.findByCategory(minCategory, 3);
             }
         }
 
-        // 未登录或衣橱为空时，推荐热销
         if (recommendProducts.isEmpty()) {
             recommendCategory = "热销新品";
-            recommendProducts = productDao.getHotProducts(8);
+            recommendProducts = productDao.getHotProducts(3);
         }
 
         req.setAttribute("recommendCategory", recommendCategory);
         req.setAttribute("recommendProducts", recommendProducts);
+
+        // 商品列表数据由 JSP 直接通过 ProductDao 查询，IndexServlet 只负责推荐
         req.getRequestDispatcher("/pages/index.jsp").forward(req, resp);
     }
 }

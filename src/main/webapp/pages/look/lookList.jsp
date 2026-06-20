@@ -21,7 +21,9 @@
         .look-card .meta { font-size: 13px; color: #999; margin-top: 4px; }
         .look-card .tags { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
         .look-card .tag { font-size: 12px; padding: 2px 12px; border-radius: 12px; background: #f0f0f0; color: #666; }
-        .look-card .tag-pending { background: #d4edda; color: #155724; }
+        .tag-pending { background: #fff3cd; color: #856404; }
+        .tag-cart { background: #cce5ff; color: #004085; }
+        .tag-shipped { background: #d4edda; color: #155724; }
         .look-card .actions { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
         .look-card .actions a { font-size: 13px; color: #ff6b81; text-decoration: none; padding: 4px 12px; border: 1px solid #ff6b81; border-radius: 4px; }
         .look-card .actions a:hover { background: #ff6b81; color: white; }
@@ -29,8 +31,11 @@
         .look-card .actions .btn-delete:hover { background: #ff6b81; color: white; }
         .empty { text-align: center; padding: 60px 0; color: #999; }
         .empty span { font-size: 48px; display: block; margin-bottom: 16px; }
-        .nav-links { margin-top: 20px; text-align: center; }
-        .nav-links a { color: #ff6b81; text-decoration: none; margin: 0 10px; }
+        .nav-links { margin-top: 20px; display: flex; gap: 16px; justify-content: center; }
+        .nav-links a { color: #999; text-decoration: none; font-size: 14px; transition: all 0.3s; }
+        .nav-links a:hover { color: #ff6b81; }
+        .nav-links .home-link { color: #ff6b81; font-weight: bold; }
+        .nav-links .home-link:hover { color: #e8556b; }
     </style>
 </head>
 <body>
@@ -53,6 +58,8 @@
         for (Look look : lookList) {
             int ownedCount = look.getWardrobeIds() != null && !look.getWardrobeIds().isEmpty() ? look.getWardrobeIds().split(",").length : 0;
             int pendingCount = look.getPendingIds() != null && !look.getPendingIds().isEmpty() ? look.getPendingIds().split(",").length : 0;
+            int cartCount = look.getCartIds() != null && !look.getCartIds().isEmpty() ? look.getCartIds().split(",").length : 0;
+            int shippedCount = look.getShippedIds() != null && !look.getShippedIds().isEmpty() ? look.getShippedIds().split(",").length : 0;
     %>
     <div class="look-card">
         <div class="name"><%= look.getName() %></div>
@@ -66,7 +73,13 @@
             <% } %>
             <span class="tag">👔 已有 <%= ownedCount %> 件</span>
             <% if (pendingCount > 0) { %>
-            <span class="tag tag-pending">🛒 待购 <%= pendingCount %> 件</span>
+            <span class="tag tag-pending">🟡 待加购 <%= pendingCount %> 件</span>
+            <% } %>
+            <% if (cartCount > 0) { %>
+            <span class="tag tag-cart">🟠 待购买 <%= cartCount %> 件</span>
+            <% } %>
+            <% if (shippedCount > 0) { %>
+            <span class="tag tag-shipped">🔵 待收货 <%= shippedCount %> 件</span>
             <% } %>
         </div>
         <div class="actions">
@@ -80,8 +93,8 @@
     %>
 
     <div class="nav-links">
+        <a href="${pageContext.request.contextPath}/index" class="home-link">🏠 返回首页</a>
         <a href="${pageContext.request.contextPath}/wardrobe/list">👔 我的衣橱</a>
-        <a href="${pageContext.request.contextPath}/order/list?status=all">📦 我的订单</a>
     </div>
 </div>
 
@@ -105,5 +118,6 @@
         }
     }
 </script>
+
 </body>
 </html>

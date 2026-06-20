@@ -25,10 +25,12 @@ public class LookRemovePendingServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
+        resp.setContentType("application/json;charset=utf-8");
+
         User user = SessionUtil.getLoginUser(req.getSession());
         if (user == null) {
             resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            resp.getWriter().write("请先登录");
+            resp.getWriter().write("{\"success\":false,\"msg\":\"请先登录\"}");
             return;
         }
 
@@ -37,14 +39,13 @@ public class LookRemovePendingServlet extends HttpServlet {
 
         Look look = lookDao.findById(lookId, user.getId());
         if (look == null) {
-            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            resp.getWriter().write("搭配不存在");
+            resp.getWriter().write("{\"success\":false,\"msg\":\"搭配不存在\"}");
             return;
         }
 
         String pendingIds = look.getPendingIds();
         if (pendingIds == null || pendingIds.isEmpty()) {
-            resp.getWriter().write("empty");
+            resp.getWriter().write("{\"success\":false,\"msg\":\"empty\"}");
             return;
         }
 
@@ -57,7 +58,6 @@ public class LookRemovePendingServlet extends HttpServlet {
         result.put("success", success);
         result.put("pendingIds", look.getPendingIds());
 
-        resp.setContentType("application/json;charset=utf-8");
         new Gson().toJson(result, resp.getWriter());
     }
 }

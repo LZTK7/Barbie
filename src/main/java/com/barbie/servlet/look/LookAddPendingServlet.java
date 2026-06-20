@@ -29,17 +29,12 @@ public class LookAddPendingServlet extends HttpServlet {
 
         User user = SessionUtil.getLoginUser(req.getSession());
         if (user == null) {
-            resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             resp.getWriter().write("{\"success\":false,\"msg\":\"请先登录\"}");
             return;
         }
 
         String lookIdParam = req.getParameter("lookId");
         String productIdParam = req.getParameter("productId");
-
-        System.out.println("========== LookAddPendingServlet ==========");
-        System.out.println("lookIdParam: " + lookIdParam);
-        System.out.println("productIdParam: " + productIdParam);
 
         if (lookIdParam == null || productIdParam == null) {
             resp.getWriter().write("{\"success\":false,\"msg\":\"参数缺失\"}");
@@ -77,9 +72,6 @@ public class LookAddPendingServlet extends HttpServlet {
 
         look.setPendingIds(pendingIds);
         boolean success = lookDao.update(look);
-
-        System.out.println("更新后的pendingIds: " + pendingIds);
-        System.out.println("保存结果: " + success);
 
         Map<String, Object> result = new HashMap<>();
         result.put("success", success);
